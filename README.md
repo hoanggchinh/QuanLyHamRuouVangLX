@@ -1,16 +1,27 @@
 # Quản lý hầm rượu vang nhỏ của Tom
-Hầm rượu vang, dù nhỏ, vẫn đòi hỏi một hệ thống quản lý chi tiết để theo dõi số lượng, loại rượu, năm sản xuất và các thông tin khác về mỗi chai rượu. Điều này tạo cơ hội để em thiết kế một cơ sở dữ liệu đa bảng với các mối quan hệ phong phú. Đồng thời, quy mô nhỏ giúp dự án vừa sức trong khuôn khổ một bài tập lớn, cho phép tập trung vào việc áp dụng các nguyên tắc thiết kế cơ sở dữ liệu, xây dựng truy vấn, thủ tục hợp lý. Ngoài ra, đề tài này cũng mở ra khả năng mở rộng trong tương lai, như tích hợp các tính năng vị trí lưu trữ hoặc phát triển nâng cao hệ thống đặt hàng, làm cho nó trở thành một dự án thú vị và có giá trị học tập cao.
+### Sinh viên thực hiện
+**Hoàng Hữu Chính**
+**K215480106007**
+**57KMT.01**
+### Các chức năng cơ bản
+>1. Thêm, sửa, xóa thông tin rượu
+>2. Kiểm tra số lượng còn lại
+>3. Kiểm tra số lượng đã hết
+>4. Tạo hóa đơn
+>5. Trigger check tuổi khách hàng và ngày đặt hàng
+### Báo cáo
+>6. Báo cáo hóa đơn theo ngày / theo tháng
 
-# Table
+# Các table được sử dụng
 **Bảng Ruou**
 
-||Column Name|Data Type|Allow Null|
-|--|--|--|--|
-|PK|RuouID|INT|NOT NULL|
-||Ten|NVARCHAR(255)||
-|FK|LoaiRuouID|INT||
-|CK|NamSanXuat|INT|| 
-|CK|GiaCoBan|DECIMAL(10,2) ||
+||Column Name|Data Type|Allow Null|CK|
+|--|--|--|--|--|
+|PK|RuouID|INT|NOT NULL||
+||Ten|NVARCHAR(255)|||
+|FK|LoaiRuouID|INT|||
+||NamSanXuat|INT||<= YEAR(GETDATE)| 
+||GiaCoBan|DECIMAL(10,2) ||>=0|
 
 **Bảng LoaiRuou**
 
@@ -21,14 +32,14 @@ Hầm rượu vang, dù nhỏ, vẫn đòi hỏi một hệ thống quản lý c
 
 **Bảng KhachHang**
 
-| |Column Name|Data Type|Allow Null|
-|--|--|--|--|
-|PK|KhachHangID|INT|NOT NULL|
-||Ten|NVARCHAR(255)|NOT NULL|
-||DiaChi|NVARCHAR(255)||
-||DienThoai|NVARCHAR(20)||
-||Email|NVARCHAR(255)|| 
-|CK|NgaySinh|DATE||
+| |Column Name|Data Type|Allow Null|CK|
+|--|--|--|--|--|
+|PK|KhachHangID|INT|NOT NULL||
+||Ten|NVARCHAR(255)|NOT NULL||
+||DiaChi|NVARCHAR(255)|||
+||DienThoai|NVARCHAR(20)|||
+||Email|NVARCHAR(255)|||
+||NgaySinh|DATE||<=GETDATE()|
 
 **Bảng DonDatHang**
 
@@ -51,24 +62,15 @@ Hầm rượu vang, dù nhỏ, vẫn đòi hỏi một hệ thống quản lý c
 
 **Bảng HangTonKho**
 
-| |Column Name|Data Type|Allow Null|
-|--|--|--|--|
-|PK|HangTonKhoID|INT||
-|FK|RuouID|INT||
-|CK|SoLuong|INT||
+| |Column Name|Data Type|Allow Null|CK|
+|--|--|--|--|--|
+|PK|HangTonKhoID|INT|||
+|FK|RuouID|INT|||
+||SoLuong|INT||>=0|
 
 **Tạo sơ đồ thực thể** 
 ![image](https://github.com/hoanggchinh/QuanLyHamRuouVangLX/assets/168759759/ed27f4b1-948d-494e-8c61-5ef6a3fd0b90)
 
-## Những chức năng cơ bản trong bài
->1. Thêm thông tin rượu
->2. Xóa thông tin rượu
->3. Sửa thông tin rượu
->4. Kiểm tra số lượng còn lại
->5. Kiểm tra số lượng đã hết
->6. Tạo hóa đơn
->7. Trigger check tuổi khách hàng và ngày đặt hàng
->8. Báo cáo hóa đơn theo ngày / theo tháng
 
 >### PROCEDURE Thêm thông tin rượu
 
@@ -111,3 +113,18 @@ BEGIN
 END
 GO
 ```
+**Xử lý thủ tục**
+```sql
+-- Thêm rượu vào kho
+EXEC ThemRuouVaoKho 
+    @TenRuou = N'COLLEFRISO 10 VINTAGES',
+    @LoaiRuouID = 5,  -- 1-VD 2-VT 3-CP 4-VP 5-VY 6-VH
+    @NamSanXuat = 2004,
+    @GiaCoBan = 4000,
+    @SoLuong = 10;
+```
+**Thêm thông tin rượu thành công**
+![image](https://github.com/hoanggchinh/QuanLyHamRuouVangNhoCuaToms/assets/168759759/25c6555a-4645-4fa1-a45e-fb308dcfa488)
+
+>### PROC Xóa thông tin rượu
+ 
