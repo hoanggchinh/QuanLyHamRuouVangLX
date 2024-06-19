@@ -4,18 +4,18 @@
 **K215480106007**
 **57KMT.01**
 ### Các chức năng cơ bản
->1. Thêm, sửa, xóa thông tin rượu
->2. Kiểm tra số lượng còn lại
->3. Kiểm tra số lượng đã hết
->4. Tạo hóa đơn
->5. Trigger check tuổi khách hàng và ngày đặt hàng
+>1. Thêm thông tin rượu
+>2. Xóa thông tin rượu
+>3. Sửa thông tin rượu
+>4. Trigger check tuổi khách hàng và ngày đặt hàng
+>5. Tạo hóa đơn
 ### Báo cáo
 >6. Báo cáo hóa đơn theo ngày / theo tháng
 
 # Các table được sử dụng
 **Bảng Ruou**
 
-||Column Name|Data Type|Allow Null|CK|
+||Column Name|Data Type|Allow Null|CK(Check Constraint)|
 |--|--|--|--|--|
 |PK|RuouID|INT|NOT NULL||
 ||Ten|NVARCHAR(255)|||
@@ -32,7 +32,7 @@
 
 **Bảng KhachHang**
 
-| |Column Name|Data Type|Allow Null|CK|
+| |Column Name|Data Type|Allow Null|CK(Check Constraint)|
 |--|--|--|--|--|
 |PK|KhachHangID|INT|NOT NULL||
 ||Ten|NVARCHAR(255)|NOT NULL||
@@ -62,17 +62,18 @@
 
 **Bảng HangTonKho**
 
-| |Column Name|Data Type|Allow Null|CK|
+| |Column Name|Data Type|Allow Null|CK(Check Constraint)|
 |--|--|--|--|--|
 |PK|HangTonKhoID|INT|||
 |FK|RuouID|INT|||
 ||SoLuong|INT||>=0|
 
 **Tạo sơ đồ thực thể** 
+
 ![image](https://github.com/hoanggchinh/QuanLyHamRuouVangLX/assets/168759759/ed27f4b1-948d-494e-8c61-5ef6a3fd0b90)
 
 
-### PROC Thêm thông tin rượu
+### 1.PROC Thêm thông tin rượu
 
 ```sql
 GO
@@ -170,9 +171,10 @@ EXEC ThemRuouVaoKho
 
 ```
 >**Thêm thông tin rượu thành công**
+
 ![image](https://github.com/hoanggchinh/QuanLyHamRuouVangNhoCuaToms/assets/168759759/98e7ef8f-87d2-4fc4-a8b1-cce030183dd6)
 
-### PROC Xóa thông tin rượu
+### 2.PROC Xóa thông tin rượu
 
 ```sql
 GO
@@ -216,8 +218,9 @@ EXEC XoaRuou @RuouID = 1;
 ```
 
 >**Xóa thông tin rượu thành công**
+
  ![image](https://github.com/hoanggchinh/QuanLyHamRuouVangNhoCuaToms/assets/168759759/2c3f7903-fb4b-4d3e-8c8f-03f9d5eb6d1a)
-### PROC Sửa thông tin rượu
+### 3.PROC Sửa thông tin rượu
 ```sql
 GO
 CREATE PROCEDURE SuaThongTinRuou
@@ -264,9 +267,10 @@ GO
 EXEC SuaThongTinRuou @RuouID = 2, @Ten = N'New Name', @LoaiRuouID = 2, @NamSanXuat = 2020, @GiaCoBan = 6000;
 ```
 >**Sửa thông tin rượu thành thành công**
+
 ![image](https://github.com/hoanggchinh/QuanLyHamRuouVangNhoCuaToms/assets/168759759/018db90f-e86e-462c-bb44-673eb7d5017e)
 
-### Trigger check tuổi khách hàng và ngày tạo hóa đơn
+### 4.Trigger check tuổi khách hàng và ngày tạo hóa đơn
 ```sql
 GO
 CREATE TRIGGER TriggerKiemTraTuoiVaNgayDat
@@ -301,6 +305,8 @@ BEGIN
 END
 GO
 ```
+
+### 5.PROC Tạo hóa đơn
 >**Tạo kiểu dữ liệu tạm thời cho PROC TaoHoaDon**
 ```sql
 CREATE TYPE ChiTietDonHangType AS TABLE
@@ -310,7 +316,7 @@ CREATE TYPE ChiTietDonHangType AS TABLE
     GiaCoBan DECIMAL(10, 2)
 );
 ```
-### PROC TaoHoaDon
+>**PROC tạo hóa đơn**
 ```sql
 GO
 CREATE PROCEDURE TaoHoaDon
@@ -379,10 +385,66 @@ EXEC TaoHoaDon
 	
 ```
 >**Tạo hóa đơn thành công**
+
 ![image](https://github.com/hoanggchinh/QuanLyHamRuouVangNhoCuaToms/assets/168759759/b0d05c87-712b-4b51-8612-fcc77c7a3193)
 
 >**Test trigger trong trường hợp vi phạm tuổi khách hàng**
+
 ![image](https://github.com/hoanggchinh/QuanLyHamRuouVangNhoCuaToms/assets/168759759/0cf830b4-db19-46fc-af1e-60aebcfb66ad)
 
 >**Test trigger trong trường hợp vi phạm ngày(nhập ngày tương lai)**
+
 ![image](https://github.com/hoanggchinh/QuanLyHamRuouVangNhoCuaToms/assets/168759759/cd622eb5-c9af-4ade-818f-08043d871b29)
+
+### 6.PROC Báo cáo hóa đơn theo ngày/theo tháng
+```sql
+GO
+CREATE PROCEDURE BaoCaoHoaDon
+    @LoaiBaoCao NVARCHAR(10),  -- 'Ngay' hoặc 'Thang'
+    @Ngay DATE = NULL,          -- Chỉ dùng khi LoaiBaoCao = 'Ngay'
+    @Nam INT = NULL,            -- Chỉ dùng khi LoaiBaoCao = 'Thang'
+    @Thang INT = NULL           -- Chỉ dùng khi LoaiBaoCao = 'Thang'
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF @LoaiBaoCao = 'Ngay'
+    BEGIN
+        SELECT 
+            d.DonDatHangID,
+            d.NgayDat,
+            k.Ten AS TenKhachHang,
+            SUM(ct.SoLuong * ct.GiaBan) AS TongTienHoaDon
+        FROM DonDatHang d
+        JOIN KhachHang k ON d.KhachHangID = k.KhachHangID
+        JOIN ChiTietDonHang ct ON d.DonDatHangID = ct.DonDatHangID
+        WHERE d.NgayDat = @Ngay
+        GROUP BY d.DonDatHangID, d.NgayDat, k.Ten;
+    END
+    ELSE IF @LoaiBaoCao = 'Thang'
+    BEGIN
+        SELECT 
+            d.DonDatHangID,
+            d.NgayDat,
+            k.Ten AS TenKhachHang,
+            SUM(ct.SoLuong * ct.GiaBan) AS TongTienHoaDon
+        FROM DonDatHang d
+        JOIN KhachHang k ON d.KhachHangID = k.KhachHangID
+        JOIN ChiTietDonHang ct ON d.DonDatHangID = ct.DonDatHangID
+        WHERE YEAR(d.NgayDat) = @Nam AND MONTH(d.NgayDat) = @Thang
+        GROUP BY d.DonDatHangID, d.NgayDat, k.Ten;
+    END
+END;
+GO
+```
+>**Báo cáo hóa đơn theo ngày**
+
+![image](https://github.com/hoanggchinh/QuanLyHamRuouVangNhoCuaToms/assets/168759759/80549907-4ac1-4d9f-adb7-46f5e3c3a6a9)
+
+>**Thêm dữ liệu mẫu để tìm hóa đơn tháng 3**
+
+![image](https://github.com/hoanggchinh/QuanLyHamRuouVangNhoCuaToms/assets/168759759/ef0f1d03-140c-4404-ab41-6b361ae61ed1)
+
+>**Báo cáo hóa đơn theo tháng**
+
+![image](https://github.com/hoanggchinh/QuanLyHamRuouVangNhoCuaToms/assets/168759759/8016fe1b-54a8-4edf-80e0-6612ce691e61)
